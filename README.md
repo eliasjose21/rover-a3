@@ -14,7 +14,7 @@ pip install pillow numpy
 
 **Executar:**
 ```bash
-python rover.py1.1.py
+python rover.py
 ```
 
 ---

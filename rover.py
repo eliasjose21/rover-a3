@@ -55,7 +55,7 @@ def _find_image(filename):
             return p
     return None
 
-IMG_SOIL  = _find_image("solo.jpeg")
+IMG_SOIL  = _find_image("solo.jpg")
 IMG_ROCK  = _find_image("pedra.jpeg")
 IMG_ROVER = _find_image("rover.jpeg")
 
