@@ -86,3 +86,17 @@ class ASTEngine:
                 for _ in range(node.n):
                     yield from ASTEngine.execute( node.body, verificar_obstaculo )
 
+
+comandos = [
+    MoverCMD(n=3),
+    RepetirCMD(n=2, body=[
+        EscanearCMD(),
+        SeObstaculoCMD(action=EsquerdaCMD()),
+        MoverCMD(n=1),
+    ]),
+]
+
+# O gerador congela entre cada yield
+for acao in ASTEngine.execute(comandos):
+    print(acao)
+    # executor.executar(acao)
