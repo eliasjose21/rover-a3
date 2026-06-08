@@ -620,10 +620,43 @@ class RoverApp(tk.Tk):
         self.lbl_status = self._status_label(status_frame, "STATUS")
 
         # Painel direito
-        right = tk.Frame(body, bg=C["panel"], width=self._right_panel_w,
-                         highlightbackground=C["border"], highlightthickness=1)
-        right.pack(side="right", fill="y", padx=0, pady=0)
-        right.pack_propagate(False)
+        # Painel direito com scrollbar vertical
+        right_outer = tk.Frame(body, bg=C["panel"], width=self._right_panel_w,
+                               highlightbackground=C["border"], highlightthickness=1)
+        right_outer.pack(side="right", fill="y", padx=0, pady=0)
+        right_outer.pack_propagate(False)
+
+        # Scrollbar
+        right_scroll = tk.Scrollbar(right_outer, orient="vertical", bg=C["panel2"],
+                                    troughcolor=C["bg"], activebackground=C["accent"],
+                                    width=10, relief="flat", bd=0)
+        right_scroll.pack(side="right", fill="y")
+
+        # Canvas interno que vai rolar
+        right_canvas = tk.Canvas(right_outer, bg=C["panel"],
+                                 highlightthickness=0,
+                                 yscrollcommand=right_scroll.set)
+        right_canvas.pack(side="left", fill="both", expand=True)
+        right_scroll.config(command=right_canvas.yview)
+
+        # Frame dentro do canvas (conteúdo real)
+        right = tk.Frame(right_canvas, bg=C["panel"])
+        right_window = right_canvas.create_window((0, 0), window=right, anchor="nw")
+
+        # Atualiza scrollregion quando o conteúdo muda de tamanho
+        def _on_frame_configure(e):
+            right_canvas.configure(scrollregion=right_canvas.bbox("all"))
+        right.bind("<Configure>", _on_frame_configure)
+
+        # Ajusta largura do frame interno ao canvas
+        def _on_canvas_configure(e):
+            right_canvas.itemconfig(right_window, width=e.width)
+        right_canvas.bind("<Configure>", _on_canvas_configure)
+
+        # Scroll com mouse wheel
+        def _on_mousewheel(e):
+            right_canvas.yview_scroll(int(-1 * (e.delta / 120)), "units")
+        right_canvas.bind_all("<MouseWheel>", _on_mousewheel)
 
         self._build_right_panel(right)
 
