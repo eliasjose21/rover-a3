@@ -24,9 +24,12 @@ from Executor import Executor
 # 
 #  CONFIGURAÇÕES DO AMBIENTE
 #
-GRID_SIZE = 20          
-CELL_SIZE = 45
+GRID_SIZE = 20
 INITIAL_X, INITIAL_Y = 10, 10
+
+# CELL_SIZE é calculado dinamicamente em RoverApp.__init__
+# Valor padrão caso seja usado antes da janela existir
+CELL_SIZE = 45
 INITIAL_DIR = "N"
 
 DIRS      = ["N", "E", "S", "W"]
@@ -453,6 +456,34 @@ class RoverApp(tk.Tk):
         self.configure(bg=C["bg"])
         self.resizable(True, True)
 
+        # ── Calcula CELL_SIZE dinamicamente para caber na tela ──────
+        global CELL_SIZE
+        RIGHT_PANEL_W = 355
+        PADDING = 80          # margens, bordas, padding geral
+        HDR_H = 90            # altura do cabeçalho + separador
+        STATUS_H = 60         # barra de status
+        EXTRA_V = 20          # padding vertical restante
+
+        scr_w = self.winfo_screenwidth()
+        scr_h = self.winfo_screenheight()
+
+        max_canvas_w = scr_w - RIGHT_PANEL_W - PADDING
+        max_canvas_h = scr_h - HDR_H - STATUS_H - EXTRA_V
+
+        # Calcula o maior CELL_SIZE que cabe, com máx de 45 e mín de 22
+        cell_by_w = max_canvas_w // GRID_SIZE
+        cell_by_h = max_canvas_h // GRID_SIZE
+        CELL_SIZE = max(22, min(45, cell_by_w, cell_by_h))
+
+        # Ajusta RIGHT_PANEL_W proporcionalmente se tela for muito pequena
+        if scr_w < 1280:
+            RIGHT_PANEL_W = max(280, int(scr_w * 0.27))
+        self._right_panel_w = RIGHT_PANEL_W
+
+        print(f"  Resolução detectada: {scr_w}x{scr_h}")
+        print(f"  CELL_SIZE calculado: {CELL_SIZE}px  (canvas: {GRID_SIZE*CELL_SIZE}x{GRID_SIZE*CELL_SIZE})")
+        # ────────────────────────────────────────────────────────────
+
         self.rover = RoverState()
         self.interp = Executor(self.rover)
         self.compiled_tokens = []
@@ -589,7 +620,7 @@ class RoverApp(tk.Tk):
         self.lbl_status = self._status_label(status_frame, "STATUS")
 
         # Painel direito
-        right = tk.Frame(body, bg=C["panel"], width=355,
+        right = tk.Frame(body, bg=C["panel"], width=self._right_panel_w,
                          highlightbackground=C["border"], highlightthickness=1)
         right.pack(side="right", fill="y", padx=0, pady=0)
         right.pack_propagate(False)
