@@ -489,6 +489,8 @@ class RoverApp(tk.Tk):
         self.compiled_tokens = []
         self.step_index = 0
 
+        self.fog_on = True
+
         self._load_images()
         self._build_ui()
         self._draw_grid()
@@ -720,6 +722,10 @@ class RoverApp(tk.Tk):
         clear_box.pack(side="left", expand=True, fill="x")
         self._btn(clear_box, "\u2715  LIMPAR LOG", self.clear_console, C["muted"], C["btn_clear"]).pack(fill="x")
 
+        clear_box = tk.Frame(row2, bg=C["border"], padx=2, pady=2)
+        clear_box.pack(side="left", expand=True, fill="x")
+        self._btn(clear_box, "\u2715  FOG", self.toggle_fog, C["muted"], C["btn_clear"]).pack(fill="x")
+
         # ── Console 
         self._section_title(parent, "CONSOLE DE SA\u00cdDA")
 
@@ -873,7 +879,7 @@ class RoverApp(tk.Tk):
                         self.canvas.create_text(cx, cy, text=arrow,
                             fill="black", font=("Courier", 14, "bold"))
 
-                elif s.grid.has_obstacle(col, row) and revealed:
+                elif s.grid.has_obstacle(col, row) and ( revealed or not self.fog_on):
                     # Obstáculo visível só se foi revelado pelo SCAN
                     if self._img_rock:
                         self.canvas.create_image(x1, y1, anchor="nw",
@@ -883,14 +889,14 @@ class RoverApp(tk.Tk):
                             fill=C["obs"])
                         self.canvas.create_text(cx, cy, text="🪨", font=("", 14))
 
-                elif is_trail and not s.grid.has_obstacle(col, row):
+                elif is_trail and not s.grid.has_obstacle(col, row) :
                     # Trilha visitada — sempre visível
                     self.canvas.create_rectangle(x1, y1, x2, y2,
                         fill=C["trail"], outline="", stipple="gray50")
                     self.canvas.create_text(cx, cy, text="·",
                         fill="#2aff80", font=("Courier", 14))
 
-                elif not revealed and not is_trail:
+                elif not revealed and not is_trail and self.fog_on:
                     # Fog of war — célula nunca vista
                     self.canvas.create_rectangle(x1, y1, x2, y2,
                         fill="#050d14", outline="", stipple="gray75")
@@ -992,6 +998,11 @@ class RoverApp(tk.Tk):
         self.console.config(state="normal")
         self.console.delete("1.0", "end")
         self.console.config(state="disabled")
+
+    def toggle_fog(self):
+        # print("TESTES")
+        self.fog_on = not self.fog_on
+        self._draw_grid()
 
     # 
     #  STATUS BAR
